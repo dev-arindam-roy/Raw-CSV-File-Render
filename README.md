@@ -3,7 +3,7 @@
 ## Application with raw csv file data
 
 ### Check Application
-[https://dev-arindam-roy.github.io/Raw-Json-File-Render/](https://dev-arindam-roy.github.io/Raw-Json-File-Render/)
+[https://dev-arindam-roy.github.io/Raw-CSV-File-Render/](https://dev-arindam-roy.github.io/Raw-CSV-File-Render/)
 
 ```js
     const callObj = {
@@ -83,14 +83,57 @@
                 return e.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
             });
             console.log(resultData);
-            csvTable(resultData, 'dataRender', callObj.name);
+            csvTable(resultData, 'dataRender');
         }).catch((error) => {
             console.log(error);
         });
     };
     fetchData();
 
-    document.getElementById('downloadBtn').addEventListener('click', downloadAsCsv);
+    document.getElementById('downloadAsCsvBtn').addEventListener('click', downloadAsCsv);
+    document.getElementById('downloadAsJsonBtn').addEventListener('click', downloadAsJson);
+
+    /* download as json */
+    function downloadAsJson() {
+        let csvContent = tableToCsv();
+        let jsonContent = JSON.stringify(csvToJson(csvContent));
+        const anchor = document.createElement('a');
+        anchor.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(jsonContent);
+        anchor.download = new Date().toJSON() + '.json' ;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+    }
+
+    /* convert csv to json */
+    function csvToJson(csvText) {
+        let lines = [];
+        const linesArray = csvText.split('\n');
+        
+        // for trimming and deleting extra space 
+        linesArray.forEach((e) => {
+            const row = e.replace(/[\s]+[,]+|[,]+[\s]+/g, ',').trim();
+            lines.push(row);
+        });
+        
+        // for removing empty record
+        lines.splice(lines.length - 1, 1);
+        
+        const result = [];
+        const headers = lines[0].split(",");
+
+        for (let i = 1; i < lines.length; i++) {
+            const obj = {};
+            const currentline = lines[i].split(",");
+            for (let j = 0; j < headers.length; j++) {
+                obj[headers[j]] = currentline[j];
+            }
+            result.push(obj);
+        }
+        //return result; //JavaScript object
+        // return JSON.stringify(result); //JSON
+        return result;
+    }
 
     function downloadAsCsv() {
         let csvContent = tableToCsv();
